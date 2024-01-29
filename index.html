@@ -36,21 +36,72 @@
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
       }
 
+      /* estilo para boton slow motion*/
+      #slowMotionButton {
+        background-color: #ff7f00;
+        color: #172b36;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 4px;
+        margin-top: 15px; /* Espacio entre el canvas y el botón */
+      }
+
+      /* estilo para boton slow motion*/
+      #slowMotionButton:hover {
+        background-color: #d95d00;
+      }
+
       #score {
-        font-family: "Aperture", sans-serif;  /* Usa una fuente que recuerde al estilo del juego */
+        font-family: "Aperture", sans-serif; /* Usa una fuente que recuerde al estilo del juego */
         margin-top: 30px;
         font-size: 20px;
         padding-left: 20px;
         padding-right: 20px;
-        color: #ffffff;  /* Utiliza un color característico de Portal 2, como el naranja */
-        text-shadow: 2px 2px 2px #000;  /* Agrega un ligero sombreado para resaltar el texto */
-        letter-spacing: 2px;  /* Espaciado entre letras para un aspecto técnico */
-        border-left: 5px solid #00bfff;  /* Un borde izquierdo azul para mayor énfasis */
-        border-right: 5px solid #ff7f00;  /* Un borde izquierdo azul para mayor énfasis */
-        background-color: #000;  /* Fondo oscuro para resaltar el texto */
+        color: #ffffff; /* Utiliza un color característico de Portal 2, como el naranja */
+        text-shadow: 2px 2px 2px #000; /* Agrega un ligero sombreado para resaltar el texto */
+        letter-spacing: 2px; /* Espaciado entre letras para un aspecto técnico */
+        border-left: 5px solid #00bfff; /* Un borde izquierdo azul para mayor énfasis */
+        border-right: 5px solid #ff7f00; /* Un borde izquierdo azul para mayor énfasis */
+        background-color: #000; /* Fondo oscuro para resaltar el texto */
       }
 
+      /*************ESTILOS PARA CONTROL DE AUDIO***************/
 
+      #audioControls {
+        display: flex;
+        gap: 8px;
+        margin-top: 15px;
+        justify-content: center; /* Centra los botones horizontalmente */
+      }
+
+      #audioControls button {
+        font-size: 20px;
+        cursor: pointer;
+        background-color: #333;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 10px 15px;
+        transition: background-color 0.3s ease, transform 0.2s ease; /* Agrega transiciones suaves */
+      }
+
+      #audioControls button:hover {
+        background-color: #555;
+      }
+
+      #audioControls button:active {
+        transform: scale(
+          0.95
+        ); /* Reduzca ligeramente el tamaño cuando se presiona el botón */
+      }
+
+      #audioControls button.active {
+        background-color: #ffcc00; /* Puedes
+      ajustar este color según tu preferencia */
+        transition: background-color 0.3s ease; /* Agrega una transición suave al cambio de color */
+      }
 
       #made {
         font-family: monospace;
@@ -69,10 +120,28 @@
   <body>
     <div id="container">
       <canvas id="pongCanvas" width="800" height="800"></canvas>
+      <button id="slowMotionButton">Toggle Slow Motion</button>
+      <!-- botón slow motion -->
       <div id="score"></div>
+
+      <audio
+        id="musicSound"
+        src="./sound/reconstructiongMoreScience8bit.mp3"
+      ></audio>
+      <div id="audioControls">
+        <button id="playButton">▶️</button>
+        <button id="volumeUpButton">+</button>
+        <button id="volumeDownButton">-</button>
+        <button id="muteButton">🔇</button>
+        <button id="loopButton">🔄</button>
+      </div>
+
       <p id="made">
-        made by <a href="https://koenvangilst.nl">Koen van Gilst</a> | source on
-        <a href="https://github.com/vnglst/pong-wars">github</a>
+        made by <a href="https://koenvangilst.nl">SAS</a> | source on
+        <a
+          href="https://github.com/infosergio2020/pong-wars_heinsenberg_edition"
+          >github</a
+        >
       </p>
     </div>
   </body>
@@ -80,8 +149,8 @@
   <script>
     // Source palette: https://twitter.com/AlexCristache/status/1738610343499157872
     const colorPalette = {
-      AtlasPortal: "#00A2FF",//portal atlas
-      AtlasBall: "#0065FF", //atlas 
+      AtlasPortal: "#00A2FF", //portal atlas
+      AtlasBall: "#0065FF", //atlas
       PbodyBall: "#FF5D00",
       PbodyPortal: "#FF9A00",
     };
@@ -91,6 +160,20 @@
     const canvas = document.getElementById("pongCanvas");
     const ctx = canvas.getContext("2d");
     const scoreElement = document.getElementById("score");
+
+    //variables para slow motion
+    const slowMotionButton = document.getElementById("slowMotionButton");
+    let isSlowMotion = false;
+
+    //audio de soundBackground
+    const musicSound = document.getElementById("musicSound");
+
+    //botones de control de audio
+    const playButton = document.getElementById("playButton");
+    const volumeUpButton = document.getElementById("volumeUpButton");
+    const volumeDownButton = document.getElementById("volumeDownButton");
+    const muteButton = document.getElementById("muteButton");
+    const loopButton = document.getElementById("loopButton");
 
     const DAY_COLOR = colorPalette.AtlasPortal;
     const DAY_BALL_COLOR = colorPalette.AtlasBall;
@@ -123,6 +206,38 @@
     let dy2 = 12.5;
 
     let iteration = 0;
+
+    //adaptacion de evento
+    slowMotionButton.addEventListener("click", toggleSlowMotion);
+
+    // eventos para audio
+    playButton.addEventListener("click", togglePlay);
+    volumeUpButton.addEventListener("click", increaseVolume);
+    volumeDownButton.addEventListener("click", decreaseVolume);
+    muteButton.addEventListener("click", toggleMute);
+
+    /** toggleSlowMotion
+     *  @brief funcion encargada de realizar una reduccion en la velocidad
+     */
+    function toggleSlowMotion() {
+      isSlowMotion = !isSlowMotion;
+
+      if (isSlowMotion) {
+        // Reducir la velocidad a la mitad (slow motion)
+        dx1 /= 2;
+        dy1 /= 2;
+        dx2 /= 2;
+        dy2 /= 2;
+        slowMotionButton.textContent = "Toggle Slow Motion ON";
+      } else {
+        // Restablecer la velocidad normal
+        dx1 *= 2;
+        dy1 *= 2;
+        dx2 *= 2;
+        dy2 *= 2;
+        slowMotionButton.textContent = "Toggle Slow Motion OFF";
+      }
+    }
 
     function drawBall(x, y, color) {
       ctx.beginPath();
@@ -164,7 +279,11 @@
 
         if (i >= 0 && i < numSquaresX && j >= 0 && j < numSquaresY) {
           if (squares[i][j] !== color) {
+            // se detecta colision entre un cuadrado de color distinto y el borde de la bola
             squares[i][j] = color;
+
+            // hacer beep
+            // to do
 
             // Determine bounce direction based on the angle
             if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
@@ -246,6 +365,48 @@
       updateScoreElement();
 
       requestAnimationFrame(draw);
+    }
+
+    /********************* FUNCIONES PARA CONTROL DE AUDIO***************************/
+    function playSound() {
+      musicSound.play();
+    }
+
+    function togglePlay() {
+      if (musicSound.paused) {
+        musicSound.play();
+      } else {
+        musicSound.pause();
+      }
+    }
+
+    function increaseVolume() {
+      if (musicSound.volume < 1.0) {
+        musicSound.volume += 0.1;
+      }
+    }
+
+    function decreaseVolume() {
+      if (musicSound.volume > 0.0) {
+        musicSound.volume -= 0.1;
+      }
+    }
+
+    function toggleMute() {
+      musicSound.muted = !musicSound.muted;
+      toggleEffect(muteButton);
+    }
+
+    function toggleLoop() {
+      musicSound.loop = !musicSound.loop;
+      toggleEffect(loopButton);
+    }
+
+    function toggleEffect(button) {
+      button.classList.add("active");
+      setTimeout(() => {
+        button.classList.remove("active");
+      }, 300);
     }
 
     requestAnimationFrame(draw);
