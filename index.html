@@ -37,12 +37,20 @@
       }
 
       #score {
-        font-family: monospace;
+        font-family: "Aperture", sans-serif;  /* Usa una fuente que recuerde al estilo del juego */
         margin-top: 30px;
         font-size: 20px;
         padding-left: 20px;
-        color: #172b36;
+        padding-right: 20px;
+        color: #ffffff;  /* Utiliza un color característico de Portal 2, como el naranja */
+        text-shadow: 2px 2px 2px #000;  /* Agrega un ligero sombreado para resaltar el texto */
+        letter-spacing: 2px;  /* Espaciado entre letras para un aspecto técnico */
+        border-left: 5px solid #00bfff;  /* Un borde izquierdo azul para mayor énfasis */
+        border-right: 5px solid #ff7f00;  /* Un borde izquierdo azul para mayor énfasis */
+        background-color: #000;  /* Fondo oscuro para resaltar el texto */
       }
+
+
 
       #made {
         font-family: monospace;
@@ -72,12 +80,10 @@
   <script>
     // Source palette: https://twitter.com/AlexCristache/status/1738610343499157872
     const colorPalette = {
-      ArcticPowder: "#F1F6F4",
-      MysticMint: "#D9E8E3",
-      Forsythia: "#FFC801",
-      DeepSaffron: "#FF9932",
-      NocturnalExpedition: "#114C5A",
-      OceanicNoir: "#172B36",
+      AtlasPortal: "#00A2FF",//portal atlas
+      AtlasBall: "#0065FF", //atlas 
+      PbodyBall: "#FF5D00",
+      PbodyPortal: "#FF9A00",
     };
 
     // Idea for Pong wars: https://twitter.com/nicolasdnl/status/1749715070928433161
@@ -86,11 +92,11 @@
     const ctx = canvas.getContext("2d");
     const scoreElement = document.getElementById("score");
 
-    const DAY_COLOR = colorPalette.MysticMint;
-    const DAY_BALL_COLOR = colorPalette.NocturnalExpedition;
+    const DAY_COLOR = colorPalette.AtlasPortal;
+    const DAY_BALL_COLOR = colorPalette.AtlasBall;
 
-    const NIGHT_COLOR = colorPalette.NocturnalExpedition;
-    const NIGHT_BALL_COLOR = colorPalette.MysticMint;
+    const NIGHT_COLOR = colorPalette.PbodyPortal;
+    const NIGHT_BALL_COLOR = colorPalette.PbodyBall;
 
     const SQUARE_SIZE = 25;
 
@@ -190,7 +196,7 @@
         }
       }
 
-      scoreElement.textContent = `day ${dayScore} | night ${nightScore}`;
+      scoreElement.textContent = `Atlas ${dayScore} | P-body ${nightScore}`;
     }
 
     function checkBoundaryCollision(x, y, dx, dy) {
